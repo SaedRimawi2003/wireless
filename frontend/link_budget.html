@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Link Budget Calculator</title>
+    <style>
+        body { font-family: Arial; background: #f4f4f4; padding: 20px; }
+        h2 { color: #333; text-align: center; }
+        .container { max-width: 500px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        label { display: block; margin-top: 10px; }
+        input, button { width: 100%; padding: 8px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; }
+        button { background: #4CAF50; color: white; border: none; cursor: pointer; margin-top: 15px; }
+        button:hover { background: #45a049; }
+        .output { margin-top: 15px; background: #eef; padding: 10px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+        a { display: block; text-align: center; margin-top: 20px; color: #4CAF50; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📶 Link Budget Calculator</h2>
+
+        <label>Tx Power (dBm)</label>
+        <input type="number" id="txPower" value="20">
+
+        <label>Tx Gain (dB)</label>
+        <input type="number" id="txGain" value="10">
+
+        <label>Rx Gain (dB)</label>
+        <input type="number" id="rxGain" value="5">
+
+        <label>Frequency (MHz)</label>
+        <input type="number" id="freq" value="2400">
+
+        <label>Distance (km)</label>
+        <input type="number" id="distance" value="5">
+
+        <button onclick="calculateLinkBudget()">Calculate</button>
+        <button onclick="explainResult()">🧠 Explain</button>
+
+        <div class="output" id="linkOutput"></div>
+        <div class="output" id="explanation"></div>
+
+        <a href="/frontend/index.html">← Back to Home</a>
+    </div>
+
+    <script>
+        let lastResult = null;
+
+        async function calculateLinkBudget() {
+            const tx = document.getElementById('txPower').value;
+            const txG = document.getElementById('txGain').value;
+            const rxG = document.getElementById('rxGain').value;
+            const f = document.getElementById('freq').value;
+            const d = document.getElementById('distance').value;
+
+            const url = `/api/link-budget?tx_power=${tx}&tx_gain=${txG}&rx_gain=${rxG}&frequency_mhz=${f}&distance_km=${d}`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                lastResult = data; // store for explanation use
+                document.getElementById('linkOutput').innerText =
+                    `Path Loss: ${data.path_loss_db} dB\nReceived Power: ${data.received_power_dbm} dBm`;
+                document.getElementById('explanation').innerText = '';
+            } catch (err) {
+                document.getElementById('linkOutput').innerText = '⚠️ Error fetching data.';
+            }
+        }
+
+        async function explainResult() {
+            if (!lastResult) {
+                document.getElementById('explanation').innerText = '⚠️ Please calculate first.';
+                return;
+            }
+            try {
+                const res = await fetch('/api/explain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        scenario: "link-budget",
+                        data: lastResult
+                    })
+                });
+                const result = await res.json();
+                document.getElementById('explanation').innerText = result.explanation;
+            } catch (err) {
+                document.getElementById('explanation').innerText = '⚠️ Error getting explanation.';
+            }
+        }
+    </script>
+</body>
+</html>
