@@ -5,10 +5,10 @@
     <title>OFDM Throughput Calculator</title>
     <style>
         body { font-family: Arial; background: #f0f0f0; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .container { max-width: 700px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #333; }
         label { display: block; margin-top: 12px; }
-        input, button { width: 100%; padding: 8px; margin-top: 6px; border-radius: 4px; border: 1px solid #ccc; }
+        input, select, button { width: 100%; padding: 8px; margin-top: 6px; border-radius: 4px; border: 1px solid #ccc; }
         button { background-color: #4CAF50; color: white; border: none; cursor: pointer; margin-top: 15px; }
         button:hover { background-color: #45a049; }
         .output { margin-top: 15px; background: #eef; padding: 10px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
@@ -19,26 +19,31 @@
     <div class="container">
         <h2>📡 OFDM Throughput Calculator</h2>
 
-        <label>Modulation Order</label>
-        <input type="number" id="modOrder" value="4">
+        <label>Modulation</label>
+        <select id="modulation">
+            <option value="QPSK">QPSK</option>
+            <option value="16QAM">16QAM</option>
+            <option value="64QAM">64QAM</option>
+            <option value="256QAM">256QAM</option>
+        </select>
 
-        <label>Subcarriers per RB</label>
-        <input type="number" id="subcarriers" value="12">
+        <label>Total Bandwidth (kHz)</label>
+        <input type="number" id="totalBw" value="20000">
 
-        <label>Symbols per Slot</label>
-        <input type="number" id="symbols" value="14">
+        <label>Bandwidth for Each Resource Block (kHz)</label>
+        <input type="number" id="bwPerRb" value="180">
 
-        <label>Slots per Second</label>
-        <input type="number" id="slots" value="1000">
+        <label>Subcarrier Spacing (kHz)</label>
+        <input type="number" id="subSpacing" value="15">
 
-        <label>Number of RBs</label>
-        <input type="number" id="rbs" value="50">
+        <label># OFDM Symbols</label>
+        <input type="number" id="numSymbols" value="14">
 
-        <label>CP Overhead (%)</label>
-        <input type="number" id="cp" value="7">
+        <label>Time for Symbol (ms)</label>
+        <input type="number" step="0.0001" id="symbolTime" value="0.0714">
 
-        <label>Bandwidth (MHz)</label>
-        <input type="number" id="bw" value="20">
+        <label># Parallel RBs</label>
+        <input type="number" id="parallelRbs" value="1">
 
         <button onclick="calculateOFDM()">Calculate</button>
         <button onclick="explainOFDM()">🧠 Explain</button>
@@ -53,7 +58,13 @@
         let ofdmResult = null;
 
         async function calculateOFDM() {
-            const url = `/api/ofdm-throughput?modulation_order=${modOrder.value}&subcarriers_per_rb=${subcarriers.value}&symbols_per_slot=${symbols.value}&slots_per_second=${slots.value}&num_rbs=${rbs.value}&cp_overhead_percent=${cp.value}&bandwidth_mhz=${bw.value}`;
+            const url = `/api/ofdm-throughput?modulation=${modulation.value}&` +
+                        `total_bandwidth_khz=${totalBw.value}&` +
+                        `bandwidth_per_rb_khz=${bwPerRb.value}&` +
+                        `subcarrier_spacing_khz=${subSpacing.value}&` +
+                        `num_ofdm_symbols=${numSymbols.value}&` +
+                        `time_for_symbol_ms=${symbolTime.value}&` +
+                        `num_parallel_rbs=${parallelRbs.value}`;
 
             try {
                 const res = await fetch(url);

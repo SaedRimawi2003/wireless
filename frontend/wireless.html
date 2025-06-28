@@ -17,19 +17,25 @@
 </head>
 <body>
     <div class="container">
-        <h2>🔊 Wireless System Rate Calculator</h2>
+        <h2>📡 Wireless System Rate Calculator</h2>
 
-        <label>Sampling Rate (Hz)</label>
-        <input type="number" id="sampling" value="8000">
+<label>Bandwidth (Hz)</label>
+<input type="number" id="bandwidth" value="4000">
 
-        <label>Quantization Bits</label>
-        <input type="number" id="quant" value="8">
+<label>Cutoff Frequency (Hz)</label>
+<input type="number" id="cutoff" value="3500">
 
-        <label>Source Encoding Ratio</label>
-        <input type="number" step="0.01" id="srcRatio" value="0.6">
+<label>Quantization Bits</label>
+<input type="number" id="quant" value="8">
 
-        <label>Channel Coding Rate</label>
-        <input type="number" step="0.01" id="chanRate" value="0.5">
+<label>Source Encoding Ratio (Rs)</label>
+<input type="number" step="0.01" id="srcRatio" value="0.5">
+
+<label>Channel Coding Rate (Rc)</label>
+<input type="number" step="0.01" id="chanRate" value="0.8">
+
+<label>Overhead Percentage (%)</label>
+<input type="number" step="0.01" id="overheadPct" value="10">
 
         <button onclick="calculateWireless()">Calculate</button>
         <button onclick="explainWireless()">🧠 Explain</button>
@@ -40,52 +46,65 @@
         <a href="/frontend/index.html">← Back to Home</a>
     </div>
 
-    <script>
-        let wirelessResult = null;
+<script>
+  let wirelessResult = null;
 
-        async function calculateWireless() {
-            const body = {
-                sampling_rate_hz: Number(document.getElementById('sampling').value),
-                quantization_bits: Number(document.getElementById('quant').value),
-                source_encoding_ratio: Number(document.getElementById('srcRatio').value),
-                channel_coding_rate: Number(document.getElementById('chanRate').value)
-            };
+  async function calculateWireless() {
+    const body = {
+      bandwidth_hz: Number(document.getElementById('bandwidth').value),
+      cutoff_frequency_hz: Number(document.getElementById('cutoff').value),
+      quantization_bits: Number(document.getElementById('quant').value),
+      source_encoding_ratio: Number(document.getElementById('srcRatio').value),
+      channel_coding_rate: Number(document.getElementById('chanRate').value),
+      overhead_percentage: Number(document.getElementById('overheadPct').value)
+    };
 
-            try {
-                const res = await fetch('/api/wireless-system', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-                const data = await res.json();
-                wirelessResult = data;
-                document.getElementById('wirelessOutput').innerText = JSON.stringify(data, null, 2);
-                document.getElementById('wirelessExplain').innerText = "";
-            } catch (err) {
-                document.getElementById('wirelessOutput').innerText = '⚠️ Error fetching wireless system data.';
-            }
-        }
+    try {
+      const res = await fetch('/api/wireless-system', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      wirelessResult = data;
 
-        async function explainWireless() {
-            if (!wirelessResult) {
-                document.getElementById('wirelessExplain').innerText = '⚠️ Please calculate first.';
-                return;
-            }
-            try {
-                const res = await fetch('/api/explain', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        scenario: "wireless-system",
-                        data: wirelessResult
-                    })
-                });
-                const result = await res.json();
-                document.getElementById('wirelessExplain').innerText = result.explanation;
-            } catch (err) {
-                document.getElementById('wirelessExplain').innerText = '⚠️ Error getting explanation.';
-            }
-        }
-    </script>
+      // عرض النتائج بشكل منسق وواضح
+      document.getElementById('wirelessOutput').innerText =
+        `Effective Frequency (Hz): ${data["Effective Frequency (Hz)"]}\n` +
+        `Sampler Output Rate (Hz): ${data["Sampler Output Rate (Hz)"]}\n` +
+        `Quantizer Output Rate (bps): ${data["Quantizer Output Rate (bps)"]}\n` +
+        `Source Encoder Output Rate (bps): ${data["Source Encoder Output Rate (bps)"]}\n` +
+        `Channel Encoder Output Rate (bps): ${data["Channel Encoder Output Rate (bps)"]}\n` +
+        `Interleaver Output Rate (bps): ${data["Interleaver Output Rate (bps)"]}\n` +
+        `Overhead Output Rate (bps): ${data["Overhead Output Rate (bps)"]}\n` +
+        `Burst Formatter Output Rate (bps): ${data["Burst Formatter Output Rate (bps)"]}`;
+
+      document.getElementById('wirelessExplain').innerText = "";
+    } catch (err) {
+      document.getElementById('wirelessOutput').innerText = '⚠️ Error fetching wireless system data.';
+    }
+  }
+
+  async function explainWireless() {
+    if (!wirelessResult) {
+      document.getElementById('wirelessExplain').innerText = '⚠️ Please calculate first.';
+      return;
+    }
+    try {
+      const res = await fetch('/api/explain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: "wireless-system",
+          data: wirelessResult
+        })
+      });
+      const result = await res.json();
+      document.getElementById('wirelessExplain').innerText = result.explanation;
+    } catch (err) {
+      document.getElementById('wirelessExplain').innerText = '⚠️ Error getting explanation.';
+    }
+  }
+</script>
 </body>
 </html>

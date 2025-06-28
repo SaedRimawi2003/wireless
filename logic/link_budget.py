@@ -1,9 +1,37 @@
-import math
+def calculate_link_budget_full(
+    pr_sensitivity_dbm,  # Receiver sensitivity (dBm)
+    gt_dbi,              # Transmitter antenna gain (dBi)
+    gr_dbi,              # Receiver antenna gain (dBi)
+    ar_gain,             # Receiver amplifier gain (dB)
+    lp_db,               # Path loss (dB)
+    lf_db,               # Feedline loss (dB)
+    l0_db,               # Other losses (dB)
+    fade_margin_db       # Fade margin (dB)
+):
+    # Calculate Transmitted Power (dBm)
+    pt_dbm = (
+        pr_sensitivity_dbm
+        + lp_db
+        + lf_db
+        + l0_db
+        + fade_margin_db
+        - gt_dbi
+        - gr_dbi
+        - ar_gain
+    )
 
-def calculate_link_budget(tx_power, tx_gain, rx_gain, frequency_mhz, distance_km):
-    path_loss = 20 * math.log10(frequency_mhz) + 20 * math.log10(distance_km) + 32.45
-    received_power = tx_power + tx_gain + rx_gain - path_loss
+    # Calculate Received Power (dBm)
+    pr_dbm = (
+        pt_dbm
+        + gt_dbi
+        + gr_dbi
+        + ar_gain
+        - lp_db
+        - lf_db
+        - l0_db
+    )
+
     return {
-        "path_loss_db": round(path_loss, 2),
-        "received_power_dbm": round(received_power, 2)
+        "Transmit Power (dBm)": pt_dbm,
+        "Received Power (dBm)": pr_dbm
     }
