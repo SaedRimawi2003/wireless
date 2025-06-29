@@ -12,6 +12,7 @@
     button { background-color: #4CAF50; color: white; border: none; cursor: pointer; margin-top: 15px; }
     button:hover { background-color: #45a049; }
     .output { margin-top: 15px; background: #eef; padding: 10px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+    .error { color: red; font-weight: bold; margin-top: 10px; }
     a { display: block; text-align: center; margin-top: 20px; color: #4CAF50; }
   </style>
 </head>
@@ -46,6 +47,7 @@
     <button onclick="calculateLinkBudget()">Calculate</button>
     <button onclick="explainLinkBudget()">🧠 Explain</button>
 
+    <div class="error" id="validationError"></div>
     <div class="output" id="linkOutput"></div>
     <div class="output" id="linkExplain"></div>
 
@@ -55,20 +57,43 @@
 <script>
   let linkResult = null;
 
+  function validateLinkInputs(params) {
+    let errors = [];
+    if (params.pr_sensitivity_dbm >= 0) errors.push("Receiver sensitivity should be negative dBm.");
+    if (params.lp_db <= 0) errors.push("Path loss must be > 0 dB.");
+    if (params.lf_db < 0) errors.push("Feed line loss cannot be negative.");
+    if (params.l0_db < 0) errors.push("Other losses cannot be negative.");
+    if (params.fade_margin_db < 0) errors.push("Fade margin cannot be negative.");
+    if (params.ar_gain <= 0) errors.push("Receiver amp gain must be > 0 (linear).");
+    return errors;
+  }
+
   async function calculateLinkBudget() {
-    const query = new URLSearchParams({
-      pr_sensitivity_dbm: document.getElementById('prSensitivity').value,
-      gt_dbi: document.getElementById('gt').value,
-      gr_dbi: document.getElementById('gr').value,
-      ar_gain: document.getElementById('arGain').value,
-      lp_db: document.getElementById('lp').value,
-      lf_db: document.getElementById('lf').value,
-      l0_db: document.getElementById('l0').value,
-      fade_margin_db: document.getElementById('fadeMargin').value
-    });
+    const params = {
+      pr_sensitivity_dbm: Number(document.getElementById('prSensitivity').value),
+      gt_dbi: Number(document.getElementById('gt').value),
+      gr_dbi: Number(document.getElementById('gr').value),
+      ar_gain: Number(document.getElementById('arGain').value),
+      lp_db: Number(document.getElementById('lp').value),
+      lf_db: Number(document.getElementById('lf').value),
+      l0_db: Number(document.getElementById('l0').value),
+      fade_margin_db: Number(document.getElementById('fadeMargin').value)
+    };
+
+    const errors = validateLinkInputs(params);
+    if (errors.length > 0) {
+      document.getElementById('validationError').innerHTML = errors.join("<br>");
+      document.getElementById('linkOutput').innerText = "";
+      document.getElementById('linkExplain').innerText = "";
+      return;
+    } else {
+      document.getElementById('validationError').innerText = "";
+    }
+
+    const query = new URLSearchParams(params).toString();
 
     try {
-      const res = await fetch(`/api/link-budget?${query.toString()}`);
+      const res = await fetch(`/api/link-budget?${query}`);
       if (!res.ok) throw new Error("API error");
       const data = await res.json();
       linkResult = data;

@@ -12,6 +12,7 @@
     button { background-color: #4CAF50; color: white; border: none; cursor: pointer; margin-top: 15px; }
     button:hover { background-color: #45a049; }
     .output { margin-top: 15px; background: #eef; padding: 10px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+    .error { color: red; font-weight: bold; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -57,12 +58,30 @@
     <button onclick="calculateCellular()">Calculate</button>
     <button onclick="explainCellular()">🧠 Explain</button>
 
+    <div class="error" id="validationError"></div>
     <div class="output" id="cellularOutput"></div>
     <div class="output" id="cellularExplain"></div>
   </div>
 
   <script>
     let cellularResult = null;
+
+    function validateCellularInputs(body) {
+      let errors = [];
+      if (body.total_area <= 0) errors.push("Total area must be greater than 0.");
+      if (body.time_slots_per_carrier <= 0) errors.push("Time slots per carrier must be greater than 0.");
+      if (body.max_number_of_users <= 0) errors.push("Max number of users must be greater than 0.");
+      if (body.number_of_calls_per_day < 0) errors.push("Number of calls per day cannot be negative.");
+      if (body.call_duration <= 0) errors.push("Call duration must be greater than 0.");
+      if (body.gos <= 0 || body.gos >= 1) errors.push("GOS must be between 0 and 1.");
+      if (body.sir <= 0) errors.push("SIR must be greater than 0 dB.");
+      if (body.p0 <= 0) errors.push("P0 must be greater than 0 dB.");
+      if (body.receiver_sensitivity <= 0) errors.push("Receiver sensitivity must be greater than 0 μW.");
+      if (body.d0 <= 0) errors.push("D0 must be greater than 0 m.");
+      if (body.path_loss_exponent <= 0) errors.push("Path loss exponent must be greater than 0.");
+      if (body.co_channel_interferers < 0) errors.push("Co-channel interferers cannot be negative.");
+      return errors;
+    }
 
     async function calculateCellular() {
       const body = {
@@ -79,6 +98,16 @@
         path_loss_exponent: Number(document.getElementById('ple').value),
         co_channel_interferers: Number(document.getElementById('cci').value)
       };
+
+      const errors = validateCellularInputs(body);
+      if (errors.length > 0) {
+        document.getElementById('validationError').innerHTML = errors.join("<br>");
+        document.getElementById('cellularOutput').innerText = '';
+        document.getElementById('cellularExplain').innerText = '';
+        return;
+      } else {
+        document.getElementById('validationError').innerText = '';
+      }
 
       try {
         const res = await fetch('/api/cellular-design', {
