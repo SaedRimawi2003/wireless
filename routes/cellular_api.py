@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from logic.cellular import calculate_cellular_design
-
 router = APIRouter()
 
 class CellularInput(BaseModel):

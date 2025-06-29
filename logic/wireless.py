@@ -1,5 +1,5 @@
 def calculate_wireless_blocks(data):
-    # 1️⃣ Effective frequency: أصغر قيمة بين الـ bandwidth والـ cutoff frequency
+    # 1️⃣ Effective frequency:  min between bandwidth and  cutoff frequency
     effective_freq = min(data.bandwidth_hz, data.cutoff_frequency_hz)
 
     # 2️⃣ Sampler output = 2 * effective frequency (Nyquist rate)
@@ -14,7 +14,7 @@ def calculate_wireless_blocks(data):
     # 5️⃣ Channel coding: Rate = Input_Rate / Coding_Rate
     channel_encoder_output = source_encoder_output / data.channel_coding_rate
 
-    # 6️⃣ Interleaver: عادة لا يغير المعدل، نفس الـ channel encoder output
+    # 6️⃣ Interleaver: channel encoder output
     interleaver_output = channel_encoder_output
 
     # 7️⃣ Overhead: Rate = Input_Rate × (1 + Overhead_Percentage / 100)

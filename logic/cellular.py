@@ -1,11 +1,7 @@
 import math
 
 def erlang_b(channels, traffic):
-    """
-    حساب احتمال الحجب باستخدام معادلة Erlang B.
-    channels: عدد القنوات
-    traffic: الحمل (Erlang)
-    """
+
     if channels == 0:
         return 1.0
     inv_b = 1.0
@@ -14,7 +10,7 @@ def erlang_b(channels, traffic):
     return 1.0 / inv_b
 
 def calculate_cellular_design(data):
-    # استخراج المدخلات
+
     time_slots_per_carrier = data["time_slots_per_carrier"]
     total_area = data["total_area"]
     max_number_of_users = data["max_number_of_users"]
@@ -62,7 +58,7 @@ def calculate_cellular_design(data):
     if traffic_load_cell > 0:
         while erlang_b(channels_needed, traffic_load_cell) > gos:
             channels_needed += 1
-            if channels_needed > 5000:  # حماية من loop لا نهائي
+            if channels_needed > 5000:
                 break
 
     # g) Min carriers
